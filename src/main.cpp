@@ -1,14 +1,26 @@
 #include <Arduino.h>
-#define LED 13
+#include <FastLED.h>
+
+#define NUM_LEDS 3
+#define LED_TYPE WS2812B
+#define DATA_PIN 6
+
+CRGB leds[NUM_LEDS];
 
 void setup() {
-  pinMode(LED, OUTPUT);
-  // put your setup code here, to run once:
+  Serial.begin(9600);
+
+  FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
+  FastLED.clear();
+  FastLED.show();
 }
 
 void loop() {
-  digitalWrite(LED, HIGH);
-  delay(1000);
-  digitalWrite(LED, LOW);
-  delay(1000);
+  leds[0] = CRGB(255, 0, 0);
+  leds[1] = CRGB(0, 255, 0);
+  leds[2] = CRGB(0, 0, 255);
+  FastLED.show();
+  
+  Serial.print("DATA_PIN = "); Serial.println(DATA_PIN);
 }
