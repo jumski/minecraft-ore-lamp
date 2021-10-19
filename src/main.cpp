@@ -1,9 +1,14 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-#define NUM_LEDS 3
+#define NUM_LEDS 11
 #define LED_TYPE WS2812B
 #define DATA_PIN 6
+#define FADE_AMOUNT 10
+
+int minBrightness = 100;
+int brightness = minBrightness;
+int fadeAmount = 2;
 
 CRGB leds[NUM_LEDS];
 
@@ -17,10 +22,20 @@ void setup() {
 }
 
 void loop() {
-  leds[0] = CRGB(255, 0, 0);
-  leds[1] = CRGB(0, 255, 0);
-  leds[2] = CRGB(0, 0, 255);
+  for (size_t i = 0; i < NUM_LEDS; i++)
+  {
+    // leds[i] = CRGB::LawnGreen;
+    leds[i] = CRGB::Teal;
+    leds[i].fadeLightBy(brightness);
+  }
   FastLED.show();
-  
-  Serial.print("DATA_PIN = "); Serial.println(DATA_PIN);
+
+  if (brightness + fadeAmount <= minBrightness || brightness + fadeAmount >= 255) {
+    fadeAmount = -fadeAmount;
+  }
+  brightness = brightness + fadeAmount;
+
+  delay(50);
+
+  Serial.println(brightness);
 }
