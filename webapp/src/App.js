@@ -14,21 +14,40 @@ const PREDEFINED_COLORS = [
 ]
 
 function App() {
+  let [currentColor, setCurrentColor] = useState(false);
+  let [readingEnabled, setReadingEnabled] = useState(true);
   let [serialPort, setSerialPort] = useState(false);
-  let [readColor, setReadColor] = useState(false);
-  let [pickerColor, setPickerColor] = useState({ r: 0, g: 0, b: 0 });
 
-  function writeColor({ r, g, b }) {
-    writeToPort(serialPort, [r, g, b].join(',') + "\n");
-    setPickerColor({ r: r, g: g, b: b });
+  function areEqual(c1, c2) {
+    return c1.r === c2.r && c1.g === c2.g && c1.b === c2.b;
   }
 
-  const debouncedWriteColor = debounce(writeColor, 1000);
+  async function writeColor({ r, g, b }) {
+    const message = [r, g, b].join(',') + "\n";
+    await writeToPort(serialPort, message);
+  }
+
+  function onPickerChange({ rgb }) {
+    setReadingEnabled(false);
+    setCurrentColor(rgb);
+  }
+
+  async function onColorPicked({ rgb }) {
+    setReadingEnabled(false); // stop reading from device so it won't overwrite
+    console.log('rgb', rgb);
+    setCurrentColor(rgb); // just write color so it shows on picker and in other places
+
+    await writeColor(rgb); // send color via serial
+
+    setReadingEnabled(true); // now safe to enable reading again
+  }
 
   async function connectButtonClicked() {
     let port = await navigator.serial.requestPort({});
     await port.open({ baudRate: 9600 });
     setSerialPort(port);
+
+    let colorWasRead = false;
 
     setupReader(port, line => {
       if (!line.match(/\d+,\d+,\d+/)) {
@@ -37,30 +56,23 @@ function App() {
 
       let [red, green, blue] = line.split(/,/);
       let newColor = { r: Number(red), g: Number(green), b: Number(blue) };
-      setReadColor(newColor);
-      // setPickerColor(newColor);
+
+      if (!colorWasRead) {
+        console.log('newColor', newColor);
+        setCurrentColor(newColor);
+        colorWasRead = true;
+      }
     });
   }
 
-  const predefinedColorButtons = PREDEFINED_COLORS.map(({ name, color }) => {
-    let bgColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
-    return <button
-      onClick={() => debouncedWriteColor(color)}
-      key={name}
-      style={{backgroundColor: bgColor}}>
-      { name }
-    </button>;
-  });
-
-  if (readColor) {
+  if (currentColor) {
     return (
       <div className="App">
-        <strong>Read Color:</strong><br/>
-        <pre type="code">{JSON.stringify(readColor, null, 2)}</pre>
+        <strong>Current color:</strong><br/>
+        <pre type="code">{JSON.stringify(currentColor, null, 2)}</pre>
+        <label>Reading enabled: <input type="checkbox" disabled="disabled" checked={readingEnabled}/></label>
 
-        {predefinedColorButtons}
-
-        <SwatchesPicker color={pickerColor} onChange={setPickerColor} onChangeComplete={(color) => debouncedWriteColor(color.rgb)}/>
+        <SketchPicker color={currentColor} onChange={onPickerChange} onChangeComplete={onColorPicked}/>
       </div>
     );
   }
