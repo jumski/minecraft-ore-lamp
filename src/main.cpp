@@ -4,27 +4,31 @@
 #define NUM_LEDS 11
 #define LED_TYPE WS2812B
 #define DATA_PIN 6
-#define FADE_AMOUNT 10
+#define INPUT_SIZE 11
+
+char input[INPUT_SIZE + 1];
+
+uint8_t red = 0;
+uint8_t green = 0;
+uint8_t blue = 0;
 
 uint8_t minFade = 0;
 uint8_t maxFade = 180;
 uint8_t currentFade = maxFade;
-int8_t fadeStep = 1;
+int8_t fadeStep = 3;
 
 CRGB leds[NUM_LEDS];
 CRGB selectedColor;
 
 // nice colors: CRGB::LawnGreen, CRGB::Teal
-CRGB colorRedstone = CRGB(255, 0, 0);
-CRGB colorEmerald = CRGB(0, 255, 0);
-CRGB colorLapisLazuli = CRGB(0, 0, 255);
-CRGB colorGold = CRGB(255, 100, 0);
-CRGB colorDiamond = CRGB(100, 245, 228);
-CRGB availableColors[5] = { colorRedstone, colorEmerald, colorLapisLazuli, colorGold, colorDiamond };
+// CRGB colorRedstone = CRGB(255, 0, 0);
+// CRGB colorEmerald = CRGB(0, 255, 0);
+// CRGB colorLapisLazuli = CRGB(0, 0, 255);
+// CRGB colorGold = CRGB(255, 100, 0);
+// CRGB colorDiamond = CRGB(100, 245, 228);
 
 void setup() {
   Serial.begin(9600);
-  selectedColor = availableColors[random(5)];
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
@@ -34,6 +38,25 @@ void setup() {
 
 
 void loop() {
+  // read colors
+  while(Serial.available()) {
+    delay(5);
+    String inputRed = Serial.readStringUntil(',');
+    String inputGreen = Serial.readStringUntil(',');
+    String inputBlue = Serial.readStringUntil('\n');
+    red = inputRed.toInt();
+    green = inputGreen.toInt();
+    blue = inputBlue.toInt();
+  }
+  selectedColor = CRGB(red, green, blue);
+
+  // calculate fade
+  if (currentFade + fadeStep <= minFade || currentFade + fadeStep >= maxFade) {
+    fadeStep = -fadeStep;
+  }
+  currentFade = currentFade + fadeStep;
+
+  // set colors and fade on LEDs
   for (size_t i = 0; i < NUM_LEDS; i++)
   {
     leds[i] = selectedColor;
@@ -41,16 +64,10 @@ void loop() {
   }
   FastLED.show();
 
-  if (currentFade + fadeStep <= minFade || currentFade + fadeStep >= maxFade) {
-    fadeStep = -fadeStep;
-  }
-  currentFade = currentFade + fadeStep;
+  // output values
+  Serial.print(red); Serial.print(',');
+  Serial.print(green); Serial.print(',');
+  Serial.println(blue);
 
   delay(15);
-
-  String stringAry[5] = {"A", "B", "C", "D", "E"};
-  long randomNumber = random(5);
-  String selectedString = stringAry[randomNumber];
-
-  Serial.println(currentFade);
 }
