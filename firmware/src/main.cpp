@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <FastLED.h>
+#include <EEPROM.h>
 
 #define NUM_LEDS 11
 #define LED_TYPE WS2812B
@@ -7,6 +8,10 @@
 #define INPUT_SIZE 11
 
 char input[INPUT_SIZE + 1];
+
+uint8_t redAddress = 0;
+uint8_t greenAddress = 1;
+uint8_t blueAddress = 2;
 
 uint8_t red = 0;
 uint8_t green = 0;
@@ -34,6 +39,10 @@ void setup() {
   FastLED.setMaxPowerInVoltsAndMilliamps(5, 500);
   FastLED.clear();
   FastLED.show();
+
+  EEPROM.get(redAddress, red);
+  EEPROM.get(greenAddress, green);
+  EEPROM.get(blueAddress, blue);
 }
 
 
@@ -47,6 +56,10 @@ void loop() {
     red = inputRed.toInt();
     green = inputGreen.toInt();
     blue = inputBlue.toInt();
+
+    EEPROM.update(redAddress, red);
+    EEPROM.update(greenAddress, green);
+    EEPROM.update(blueAddress, blue);
   }
   selectedColor = CRGB(red, green, blue);
 
