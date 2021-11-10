@@ -1,8 +1,9 @@
 import './App.css';
-import { SketchPicker } from 'react-color';
+import { SketchPicker, SwatchesPicker } from 'react-color';
 import { useState } from 'react';
 import setupReader from './setupReader';
 import writeToPort from './writeToPort';
+import _, { debounce } from 'lodash';
 
 const PREDEFINED_COLORS = [
   { name: 'Redstone', color: { r: 255, g: 0, b: 0 } },
@@ -14,12 +15,15 @@ const PREDEFINED_COLORS = [
 
 function App() {
   let [serialPort, setSerialPort] = useState(false);
-  // let [color, setColor] = useState({ r: 255, g: 0, b: 0 });
   let [readColor, setReadColor] = useState(false);
+  let [pickerColor, setPickerColor] = useState({ r: 0, g: 0, b: 0 });
 
   function writeColor({ r, g, b }) {
     writeToPort(serialPort, [r, g, b].join(',') + "\n");
+    setPickerColor({ r: r, g: g, b: b });
   }
+
+  const debouncedWriteColor = debounce(writeColor, 1000);
 
   async function connectButtonClicked() {
     let port = await navigator.serial.requestPort({});
@@ -34,18 +38,14 @@ function App() {
       let [red, green, blue] = line.split(/,/);
       let newColor = { r: Number(red), g: Number(green), b: Number(blue) };
       setReadColor(newColor);
+      // setPickerColor(newColor);
     });
   }
-
-//   function onPickedColor(color) {
-//     setColor(color.rgb);
-//     console.log(color.rgb);
-//   }
 
   const predefinedColorButtons = PREDEFINED_COLORS.map(({ name, color }) => {
     let bgColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
     return <button
-      onClick={() => writeColor(color)}
+      onClick={() => debouncedWriteColor(color)}
       key={name}
       style={{backgroundColor: bgColor}}>
       { name }
@@ -60,7 +60,7 @@ function App() {
 
         {predefinedColorButtons}
 
-        {/* <SketchPicker color={color} onChange={onPickedColor}/> */}
+        <SwatchesPicker color={pickerColor} onChange={setPickerColor} onChangeComplete={(color) => debouncedWriteColor(color.rgb)}/>
       </div>
     );
   }
