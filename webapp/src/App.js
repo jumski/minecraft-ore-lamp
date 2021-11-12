@@ -1,7 +1,7 @@
 import './App.scss';
 import './background.jpg';
 import logo from './logo.png';
-import { SketchPicker, SwatchesPicker } from 'react-color';
+import { SliderPicker } from 'react-color';
 import { useState } from 'react';
 import setupReader from './setupReader';
 import writeToPort from './writeToPort';
@@ -74,8 +74,8 @@ function App() {
         <div className="title">{color.name}</div>
       </div>;
     });
-    menuItems.push(<div className="mc-button full" key="Paleta barw">
-      <div className="title">Paleta barw</div>
+    menuItems.push(<div className="picker-container" key="Paleta barw">
+      <SliderPicker color={currentColor} onChange={onPickerChange} onChangeComplete={onColorPicked}/>
     </div>);
   }
   else {
@@ -93,8 +93,6 @@ function App() {
       <div className="menu mc-menu">
         {menuItems}
       </div>
-
-      {/* <SketchPicker color={currentColor} onChange={onPickerChange} onChangeComplete={onColorPicked}/> */}
     </div>
   );
 }
