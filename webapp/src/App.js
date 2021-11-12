@@ -1,4 +1,6 @@
-import './App.css';
+import './App.scss';
+import './background.jpg';
+import logo from './logo.png';
 import { SketchPicker, SwatchesPicker } from 'react-color';
 import { useState } from 'react';
 import setupReader from './setupReader';
@@ -68,6 +70,13 @@ function App() {
   if (currentColor) {
     return (
       <div className="App">
+        <div className="mc-menu">
+          <img style={{}} src={logo} alt="Lampka Franka"/>
+          <div className="mc-button full">
+            <div className="title">Lapis Lazuli</div>
+          </div>
+        </div>
+
         <strong>Current color:</strong><br/>
         <pre type="code">{JSON.stringify(currentColor, null, 2)}</pre>
         <label>Reading enabled: <input type="checkbox" disabled="disabled" checked={readingEnabled}/></label>
@@ -79,7 +88,7 @@ function App() {
   else {
     return (
       <div className="App">
-        <button onClick={connectButtonClicked}>Connect!</button>
+        <button onClick={connectButtonClicked}>Podłącz lampkę!</button>
       </div>
     );
   }
