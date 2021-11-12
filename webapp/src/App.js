@@ -70,9 +70,14 @@ function App() {
   let menuItems;
   if (currentColor) {
     menuItems = PREDEFINED_COLORS.map((color) => {
-      return <div className="mc-button full" key={color.name}>
-        <div className="title">{color.name}</div>
-      </div>;
+      return (
+        <div
+          className="mc-button full"
+          key={color.name}
+          onClick={() => onColorPicked({ rgb: color.color }) }>
+          <div className="title">{color.name}</div>
+        </div>
+      );
     });
     menuItems.push(<div className="picker-container" key="Paleta barw">
       <SliderPicker color={currentColor} onChange={onPickerChange} onChangeComplete={onColorPicked}/>
